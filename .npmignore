@@ -1,6 +1,8 @@
+.idea
 test/
 examples/
 dist/
+lib/
 yarn.lock
 .github
 *.config.js
@@ -10,3 +12,7 @@ Makefile
 __tests__/
 index-dev.js
 index.html
+.babelrc
+.eslintignore
+.flowconfig
+.travis.yml
