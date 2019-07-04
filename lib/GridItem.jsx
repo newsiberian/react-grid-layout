@@ -387,6 +387,9 @@ export default class GridItem extends React.Component<Props, State> {
       // Get new XY
       switch (handlerName) {
         case "onDragStart": {
+          // Stops bubbling to allow nested grid dragging
+          e.stopPropagation();
+
           // TODO: this wont work on nested parents
           const { offsetParent } = node;
           if (!offsetParent) return;
