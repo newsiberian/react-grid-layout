@@ -289,6 +289,7 @@ rowHeight: ?number = 150,
 //
 isDraggable: ?boolean = true,
 isResizable: ?boolean = true,
+isBounded: ?boolean = false,
 // Uses CSS3 translate() instead of position top/left.
 // This makes about 6x faster paint performance
 useCSSTransforms: ?boolean = true,
@@ -399,7 +400,9 @@ will be draggable.
   // If false, will not be draggable. Overrides `static`.
   isDraggable: ?boolean = true,
   // If false, will not be resizable. Overrides `static`.
-  isResizable: ?boolean = true
+  isResizable: ?boolean = true,
+  // If true and draggable, item will be moved only within grid.
+  isBounded: ?boolean = false
 }
 ```
 

@@ -39,14 +39,8 @@ export default function GridItem(props) {
       // 0 * Infinity === NaN, which causes problems with resize constraints;
       // Fix this if it occurs.
       // Note we do it here rather than later because Math.round(Infinity) causes deopt
-      width:
-        w === Infinity
-          ? w
-          : Math.round(colWidth * w + Math.max(0, w - 1) * margin[0]),
-      height:
-        h === Infinity
-          ? h
-          : Math.round(rowHeight * h + Math.max(0, h - 1) * margin[1])
+      width: w === Infinity ? w : calcWidth(w, colWidth),
+      height: h === Infinity ? h : calcHeight(h)
     };
 
     if (state && state.resizing) {
@@ -109,6 +103,26 @@ export default function GridItem(props) {
     w = Math.max(Math.min(w, cols - x), 0);
     h = Math.max(Math.min(h, maxRows - y), 0);
     return { w, h };
+  }
+
+  /**
+   * Calculate grid item width
+   * @param  {Number} w        W coordinate in grid units
+   * @param  {Number} colWidth Column width in pixels
+   * @return {Number} Item width in pixels
+   */
+  function calcWidth(w, colWidth) {
+    return Math.round(colWidth * w + Math.max(0, w - 1) * props.margin[0]);
+  }
+
+  /**
+   * Calculate grid item height
+   * @param  {Number} h H coordinate in grid units
+   * @return {Number} Item height in pixels
+   */
+  function calcHeight(h) {
+    const { rowHeight, margin } = props;
+    return Math.round(rowHeight * h + Math.max(0, h - 1) * margin[1]);
   }
 
   /**
@@ -231,12 +245,36 @@ export default function GridItem(props) {
           setDragging(newPosition);
           break;
         }
-        case "onDrag":
+        case "onDrag": {
           if (!dragging) throw new Error("onDrag called before onDragStart.");
-          newPosition.left = dragging.left + deltaX;
+          let top = dragging.top + deltaY;
           newPosition.top = dragging.top + deltaY;
+          let left = dragging.left + deltaX;
+
+          const { isBounded, w, h, containerWidth } = props;
+
+          if (isBounded) {
+            const { offsetParent } = node;
+
+            if (offsetParent) {
+              const bottomBoundary =
+                offsetParent.clientHeight - calcHeight(h);
+              if (top > bottomBoundary) top = bottomBoundary;
+              if (top < 0) top = 0;
+
+              const rightBoundary =
+                containerWidth - calcWidth(w, calcColWidth());
+              if (left > rightBoundary) left = rightBoundary;
+              if (left < 0) left = 0;
+            }
+          }
+
+          newPosition.left = left;
+          newPosition.top = top;
+
           setDragging(newPosition);
           break;
+        }
         case "onDragStop":
           if (!dragging)
             throw new Error("onDragEnd called before onDragStart.");
@@ -394,6 +432,7 @@ GridItem.propTypes = {
   // Flags
   isDraggable: PropTypes.bool.isRequired,
   isResizable: PropTypes.bool.isRequired,
+  isBounded: PropTypes.bool.isRequired,
   static: PropTypes.bool,
 
   // Use CSS transforms instead of top/left
