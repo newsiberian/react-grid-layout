@@ -69,7 +69,7 @@ export default function GridItem(props) {
    * @return {Object} x and y in grid units.
    */
   function calcXY(top, left) {
-    const { margin, cols, rowHeight, w, h, maxRows } = props;
+    const { margin, cols, containerPadding, rowHeight, w, h, maxRows } = props;
     const colWidth = calcColWidth();
 
     // left = colWidth * x + margin * (x + 1)
@@ -79,8 +79,8 @@ export default function GridItem(props) {
     // l - m = x(c + m)
     // (l - m) / (c + m) = x
     // x = (left - margin) / (coldWidth + margin)
-    let x = Math.round((left - margin[0]) / (colWidth + margin[0]));
-    let y = Math.round((top - margin[1]) / (rowHeight + margin[1]));
+    let x = Math.round((left - containerPadding[0]) / (colWidth + margin[0]));
+    let y = Math.round((top - containerPadding[1]) / (rowHeight + margin[1]));
 
     // Capping
     x = Math.max(Math.min(x, cols - w), 0);
