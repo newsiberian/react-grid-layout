@@ -212,13 +212,16 @@ export default class ResponsiveReactGridLayout extends React.Component<
       propsBreakpoints !== breakpoints ||
       propCols !== cols
     ) {
+      // otherwise original `layouts` prop will be mutated
+      const modifiedLayouts = { ...layouts };
+
       // Preserve the current layout if the current breakpoint is not present in the next layouts.
       if (!(lastBreakpoint in layouts))
-        layouts[lastBreakpoint] = cloneLayout(stateLayout);
+        modifiedLayouts[lastBreakpoint] = cloneLayout(stateLayout);
 
       // Find or generate a new layout.
       let layout = findOrGenerateResponsiveLayout(
-        layouts,
+        modifiedLayouts,
         breakpoints,
         newBreakpoint,
         lastBreakpoint,
@@ -235,11 +238,11 @@ export default class ResponsiveReactGridLayout extends React.Component<
       );
 
       // Store the new layout.
-      layouts[newBreakpoint] = layout;
+      modifiedLayouts[newBreakpoint] = layout;
 
       // callbacks
       onBreakpointChange(newBreakpoint, newCols);
-      onLayoutChange(layout, layouts);
+      onLayoutChange(layout, modifiedLayouts);
 
       this.setState({
         breakpoint: newBreakpoint,
