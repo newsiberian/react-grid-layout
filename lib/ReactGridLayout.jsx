@@ -268,6 +268,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
+    const { layout } = this.state;
     let newLayoutBase;
     // Legacy support for compactType
     // Allow parent to set layout directly.
@@ -280,7 +281,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       // If children change, also regenerate the layout. Use our state
       // as the base in case because it may be more up to date than
       // what is in props.
-      newLayoutBase = this.state.layout;
+      newLayoutBase = layout;
     }
 
     // We need to regenerate the layout.
@@ -291,9 +292,8 @@ export default class ReactGridLayout extends React.Component<Props, State> {
         nextProps.cols,
         this.compactType(nextProps)
       );
-      const oldLayout = this.state.layout;
       this.setState({ layout: newLayout });
-      this.onLayoutMaybeChanged(newLayout, oldLayout);
+      this.onLayoutMaybeChanged(newLayout, layout);
     }
   }
 
@@ -439,13 +439,16 @@ export default class ReactGridLayout extends React.Component<Props, State> {
 
   onResizeStart(i: string, w: number, h: number, { e, node }: GridResizeEvent) {
     const { layout } = this.state;
-    var l = getLayoutItem(layout, i);
-    if (!l) return;
+    const l = getLayoutItem(layout, i);
 
-    this.setState({
+    if (!l) {
+      return;
+    }
+
+    this.setState(({ layout: oldLayout }) => ({
       oldResizeItem: cloneLayoutItem(l),
-      oldLayout: this.state.layout
-    });
+      oldLayout
+    }));
 
     this.props.onResizeStart(layout, l, l, null, e, node);
   }
@@ -454,11 +457,15 @@ export default class ReactGridLayout extends React.Component<Props, State> {
     const { layout, oldResizeItem } = this.state;
     const { cols, preventCollision } = this.props;
     const l: ?LayoutItem = getLayoutItem(layout, i);
-    if (!l) return;
+
+    if (!l) {
+      return;
+    }
 
     // Something like quad tree should be used
     // to find collisions faster
-    let hasCollisions;
+    let hasCollisions = false;
+
     if (preventCollision) {
       const collisions = getAllCollisions(layout, { ...l, w, h }).filter(
         layoutItem => layoutItem.i !== l.i
@@ -484,10 +491,12 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       // Set new width and height.
       l.w = w;
       l.h = h;
+      l.persistentW = w;
+      l.persistentH = h;
     }
 
     // Create placeholder element (display only)
-    var placeholder = {
+    const placeholder = {
       w: l.w,
       h: l.h,
       x: l.x,
@@ -506,15 +515,14 @@ export default class ReactGridLayout extends React.Component<Props, State> {
   }
 
   onResizeStop(i: string, w: number, h: number, { e, node }: GridResizeEvent) {
-    const { layout, oldResizeItem } = this.state;
+    const { layout, oldResizeItem, oldLayout } = this.state;
     const { cols } = this.props;
-    var l = getLayoutItem(layout, i);
+    const l = getLayoutItem(layout, i);
 
     this.props.onResizeStop(layout, oldResizeItem, l, null, e, node);
 
     // Set state
     const newLayout = compact(layout, this.compactType(), cols);
-    const { oldLayout } = this.state;
     this.setState({
       activeDrag: null,
       layout: newLayout,
@@ -634,6 +642,8 @@ export default class ReactGridLayout extends React.Component<Props, State> {
         x={l.x}
         y={l.y}
         i={l.i}
+        persistentH={l.persistentH}
+        persistentW={l.persistentW}
         minH={l.minH}
         minW={l.minW}
         maxH={l.maxH}

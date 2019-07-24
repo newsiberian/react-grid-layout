@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { perc, setTopLeft, setTransform } from "./utils";
 import classNames from "classnames";
 
 import Draggable from "./Draggable";
 import Resizable from "./Resizable";
 import * as propTypes from "./propTypes";
+import { perc, setTopLeft, setTransform } from "./utils";
 
 /**
  * An individual item within a ReactGridLayout.
