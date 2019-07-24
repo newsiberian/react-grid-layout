@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Resizable } from "react-resizable";
 import { perc, setTopLeft, setTransform } from "./utils";
 import classNames from "classnames";
 
 import Draggable from "./Draggable";
+import Resizable from "./Resizable";
+import * as propTypes from "./propTypes";
 
 /**
  * An individual item within a ReactGridLayout.
@@ -157,170 +158,140 @@ export default function GridItem(props) {
   }
 
   /**
-   * Mix a Resizable instance into a child.
-   * @param  {Element} child    Child element.
-   * @param  {Object} position  Position object (pixel values)
-   * @param {Object} [resizableProps] Additional props to React-Resizable
-   * @return {Element}          Child wrapped in Resizable.
-   */
-  function mixinResizable(child, position, resizableProps) {
-    const { cols, x, minW, minH, maxW, maxH } = props;
-    // This is the max possible width - doesn't go to infinity because of the width of the window
-    const maxWidth = calcPosition(0, 0, cols - x, 0).width;
-
-    // Calculate min/max constraints using our min & maxes
-    const mins = calcPosition(0, 0, minW, minH);
-    const maxes = calcPosition(0, 0, maxW, maxH);
-    const minConstraints = [mins.width, mins.height];
-    const maxConstraints = [
-      Math.min(maxes.width, maxWidth),
-      Math.min(maxes.height, Infinity)
-    ];
-    return (
-      <Resizable
-        width={position.width}
-        height={position.height}
-        minConstraints={minConstraints}
-        maxConstraints={maxConstraints}
-        onResizeStop={onResizeHandler("onResizeStop")}
-        onResizeStart={onResizeHandler("onResizeStart")}
-        onResize={onResizeHandler("onResize")}
-        {...resizableProps}
-      >
-        {child}
-      </Resizable>
-    );
-  }
-
-  /**
    * Wrapper around drag events to provide more useful data.
    * All drag events call the function with the given handler name,
    * with the signature (index, x, y).
-   *
-   * @param  {String} handlerName Handler name to wrap.
-   * @return {Function}           Handler function.
+   * @param e
+   * @param node
+   * @param deltaX
+   * @param deltaY
+   * @param {String} handlerName - Handler name to wrap.
+   * @return {*}
    */
-  function onDragHandler(handlerName) {
-    return (e, { node, deltaX, deltaY }) => {
-      const handler = props[handlerName];
-      if (!handler) return;
+  function onDragHandler(e, { node, deltaX, deltaY }, handlerName) {
+    const handler = props[handlerName];
+    if (!handler) return;
 
-      const newPosition = { top: 0, left: 0 };
+    const newPosition = { top: 0, left: 0 };
 
-      // Get new XY
-      switch (handlerName) {
-        case "onDragStart": {
-          // Stops bubbling to allow nested grid dragging
-          e.stopPropagation();
+    // Get new XY
+    switch (handlerName) {
+      case "onDragStart": {
+        // Stops bubbling to allow nested grid dragging
+        e.stopPropagation();
 
-          // TODO: this wont work on nested parents
-          const { offsetParent } = node;
-          if (!offsetParent) return;
-          const parentRect = offsetParent.getBoundingClientRect();
-          const clientRect = node.getBoundingClientRect();
-          newPosition.left =
-            clientRect.left - parentRect.left + offsetParent.scrollLeft;
-          newPosition.top =
-            clientRect.top - parentRect.top + offsetParent.scrollTop;
-          setDragging(newPosition);
-          break;
-        }
-        case "onDrag": {
-          if (!dragging) throw new Error("onDrag called before onDragStart.");
-          let top = dragging.top + deltaY;
-          newPosition.top = dragging.top + deltaY;
-          let left = dragging.left + deltaX;
-
-          const { isBounded, w, h, containerWidth } = props;
-
-          if (isBounded) {
-            const { offsetParent } = node;
-
-            if (offsetParent) {
-              const bottomBoundary = offsetParent.clientHeight - calcHeight(h);
-              if (top > bottomBoundary) top = bottomBoundary;
-              if (top < 0) top = 0;
-
-              const rightBoundary =
-                containerWidth - calcWidth(w, calcColWidth());
-              if (left > rightBoundary) left = rightBoundary;
-              if (left < 0) left = 0;
-            }
-          }
-
-          newPosition.left = left;
-          newPosition.top = top;
-
-          setDragging(newPosition);
-          break;
-        }
-        case "onDragStop":
-          if (!dragging)
-            throw new Error("onDragEnd called before onDragStart.");
-          newPosition.left = dragging.left;
-          newPosition.top = dragging.top;
-          setDragging(null);
-          break;
-        default:
-          throw new Error(
-            "onDragHandler called with unrecognized handlerName: " + handlerName
-          );
+        // TODO: this wont work on nested parents
+        const { offsetParent } = node;
+        if (!offsetParent) return;
+        const parentRect = offsetParent.getBoundingClientRect();
+        const clientRect = node.getBoundingClientRect();
+        newPosition.left =
+          clientRect.left - parentRect.left + offsetParent.scrollLeft;
+        newPosition.top =
+          clientRect.top - parentRect.top + offsetParent.scrollTop;
+        setDragging(newPosition);
+        break;
       }
+      case "onDrag": {
+        if (!dragging) throw new Error("onDrag called before onDragStart.");
+        let top = dragging.top + deltaY;
+        newPosition.top = dragging.top + deltaY;
+        let left = dragging.left + deltaX;
 
-      const { x, y } = calcXY(newPosition.top, newPosition.left);
+        const { isBounded, w, h, containerWidth } = props;
 
-      return handler.call(this, props.i, x, y, { e, node, newPosition });
-    };
+        if (isBounded) {
+          const { offsetParent } = node;
+
+          if (offsetParent) {
+            const bottomBoundary = offsetParent.clientHeight - calcHeight(h);
+            if (top > bottomBoundary) top = bottomBoundary;
+            if (top < 0) top = 0;
+
+            const rightBoundary = containerWidth - calcWidth(w, calcColWidth());
+            if (left > rightBoundary) left = rightBoundary;
+            if (left < 0) left = 0;
+          }
+        }
+
+        newPosition.left = left;
+        newPosition.top = top;
+
+        setDragging(newPosition);
+        break;
+      }
+      case "onDragStop":
+        if (!dragging) throw new Error("onDragEnd called before onDragStart.");
+        newPosition.left = dragging.left;
+        newPosition.top = dragging.top;
+        setDragging(null);
+        break;
+      default:
+        throw new Error(
+          "onDragHandler called with unrecognized handlerName: " + handlerName
+        );
+    }
+
+    const { x, y } = calcXY(newPosition.top, newPosition.left);
+
+    return handler.call(this, props.i, x, y, { e, node, newPosition });
   }
 
   /**
    * Wrapper around drag events to provide more useful data.
    * All drag events call the function with the given handler name,
    * with the signature (index, x, y).
-   *
-   * @param  {String} handlerName Handler name to wrap.
-   * @return {Function}           Handler function.
+   * @param e
+   * @param node
+   * @param size
+   * @param {String} handlerName - Handler name to wrap.
    */
-  function onResizeHandler(handlerName) {
-    return (e, { node, size }) => {
-      const handler = props[handlerName];
-      if (!handler) return;
-      const { cols, x, i, maxW, minW, maxH, minH } = props;
+  function onResizeHandler(e, { node, size }, handlerName) {
+    const handler = props[handlerName];
+    if (!handler) return;
+    const { cols, x, i, maxW, minW, maxH, minH } = props;
 
-      // Get new XY
-      let { w, h } = calcWH(size);
+    // Get new XY
+    let { w, h } = calcWH(size);
 
-      // Cap w at numCols
-      w = Math.min(w, cols - x);
-      // Ensure w is at least 1
-      w = Math.max(w, 1);
+    // Cap w at numCols
+    w = Math.min(w, cols - x);
+    // Ensure w is at least 1
+    w = Math.max(w, 1);
 
-      // Min/max capping
-      w = Math.max(Math.min(w, maxW), minW);
-      h = Math.max(Math.min(h, maxH), minH);
+    // Min/max capping
+    w = Math.max(Math.min(w, maxW), minW);
+    h = Math.max(Math.min(h, maxH), minH);
 
-      setResizing(handlerName === "onResizeStop" ? null : size);
+    setResizing(handlerName === "onResizeStop" ? null : size);
 
-      handler.call(this, i, w, h, { e, node, size });
-    };
+    handler.call(this, i, w, h, { e, node, size });
   }
 
   const {
+    cancel,
+    handle,
+    cols,
     x,
     y,
     w,
     h,
+    minW,
+    minH,
+    maxW,
+    maxH,
     isDraggable,
     isResizable,
     useCSSTransforms,
-    resizableProps
+    resizableProps,
+    style
   } = props;
 
   const pos = calcPosition(x, y, w, h, { dragging, resizing });
   const child = React.Children.only(props.children);
 
   // Create the child element. We clone the existing element but modify its className and style.
-  let newChild = React.cloneElement(child, {
+  const newChild = React.cloneElement(child, {
     className: classNames(
       "react-grid-item",
       child.props.className,
@@ -335,24 +306,34 @@ export default function GridItem(props) {
     ),
     // We can set the width and height on the child, but unfortunately we can't set the position.
     style: {
-      ...props.style,
+      ...style,
       ...child.props.style,
       ...createStyle(pos)
     }
   });
 
-  // Resizable support. This is usually on but the user can toggle it off.
-  if (isResizable) newChild = mixinResizable(newChild, pos, resizableProps);
-
-  // Draggable support. This is always on, except for with placeholders.
   return (
     <Draggable
-      cancel={props.cancel}
-      handle={props.handle}
+      cancel={cancel}
+      handle={handle}
       isDraggable={isDraggable}
       onDrag={onDragHandler}
     >
-      {newChild}
+      <Resizable
+        calcPosition={calcPosition}
+        cols={cols}
+        x={x}
+        minW={minW}
+        minH={minH}
+        maxW={maxW}
+        maxH={maxH}
+        isResizable={isResizable}
+        onResize={onResizeHandler}
+        position={pos}
+        resizableProps={resizableProps}
+      >
+        {newChild}
+      </Resizable>
     </Draggable>
   );
 }
@@ -377,33 +358,10 @@ GridItem.propTypes = {
   h: PropTypes.number.isRequired,
 
   // All optional
-  minW: function(props, propName) {
-    const value = props[propName];
-    if (typeof value !== "number") return new Error("minWidth not Number");
-    if (value > props.w || value > props.maxW)
-      return new Error("minWidth larger than item width/maxWidth");
-  },
-
-  maxW: function(props, propName) {
-    const value = props[propName];
-    if (typeof value !== "number") return new Error("maxWidth not Number");
-    if (value < props.w || value < props.minW)
-      return new Error("maxWidth smaller than item width/minWidth");
-  },
-
-  minH: function(props, propName) {
-    const value = props[propName];
-    if (typeof value !== "number") return new Error("minHeight not Number");
-    if (value > props.h || value > props.maxH)
-      return new Error("minHeight larger than item height/maxHeight");
-  },
-
-  maxH: function(props, propName) {
-    const value = props[propName];
-    if (typeof value !== "number") return new Error("maxHeight not Number");
-    if (value < props.h || value < props.minH)
-      return new Error("maxHeight smaller than item height/minHeight");
-  },
+  minW: propTypes.minW,
+  maxW: propTypes.maxW,
+  minH: propTypes.minH,
+  maxH: propTypes.maxH,
 
   // ID is nice to have for callbacks
   i: PropTypes.string.isRequired,
@@ -433,7 +391,7 @@ GridItem.propTypes = {
   handle: PropTypes.string,
   // Selector for draggable cancel (see react-draggable)
   cancel: PropTypes.string,
-  usePercentages: PropTypes.bool.isRequired
+  usePercentages: PropTypes.bool
 };
 
 GridItem.defaultProps = {
@@ -443,5 +401,6 @@ GridItem.defaultProps = {
   minH: 1,
   minW: 1,
   maxH: Infinity,
-  maxW: Infinity
+  maxW: Infinity,
+  usePercentages: false
 };

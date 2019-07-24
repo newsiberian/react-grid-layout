@@ -2,11 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import { DraggableCore } from "react-draggable";
 
-/**
- * Mix a Draggable instance into a child.
- * @param  {Element} child    Child element.
- * @return {Element}          Child wrapped in Draggable.
- */
 export default function Draggable({
   cancel,
   children,
@@ -17,9 +12,9 @@ export default function Draggable({
   if (isDraggable) {
     return (
       <DraggableCore
-        onStart={onDrag("onDragStart")}
-        onDrag={onDrag("onDrag")}
-        onStop={onDrag("onDragStop")}
+        onStart={(e, data) => onDrag(e, data, "onDragStart")}
+        onDrag={(e, data) => onDrag(e, data, "onDrag")}
+        onStop={(e, data) => onDrag(e, data, "onDragStop")}
         handle={handle}
         cancel={`.react-resizable-handle${cancel.length ? `,${cancel}` : ""}`}
       >
