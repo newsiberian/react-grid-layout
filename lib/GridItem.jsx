@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { DraggableCore } from "react-draggable";
 import { Resizable } from "react-resizable";
 import { perc, setTopLeft, setTransform } from "./utils";
 import classNames from "classnames";
+
+import Draggable from "./Draggable";
 
 /**
  * An individual item within a ReactGridLayout.
@@ -156,27 +157,6 @@ export default function GridItem(props) {
   }
 
   /**
-   * Mix a Draggable instance into a child.
-   * @param  {Element} child    Child element.
-   * @return {Element}          Child wrapped in Draggable.
-   */
-  function mixinDraggable(child) {
-    return (
-      <DraggableCore
-        onStart={onDragHandler("onDragStart")}
-        onDrag={onDragHandler("onDrag")}
-        onStop={onDragHandler("onDragStop")}
-        handle={props.handle}
-        cancel={
-          ".react-resizable-handle" + (props.cancel ? "," + props.cancel : "")
-        }
-      >
-        {child}
-      </DraggableCore>
-    );
-  }
-
-  /**
    * Mix a Resizable instance into a child.
    * @param  {Element} child    Child element.
    * @param  {Object} position  Position object (pixel values)
@@ -257,8 +237,7 @@ export default function GridItem(props) {
             const { offsetParent } = node;
 
             if (offsetParent) {
-              const bottomBoundary =
-                offsetParent.clientHeight - calcHeight(h);
+              const bottomBoundary = offsetParent.clientHeight - calcHeight(h);
               if (top > bottomBoundary) top = bottomBoundary;
               if (top < 0) top = 0;
 
@@ -366,14 +345,22 @@ export default function GridItem(props) {
   if (isResizable) newChild = mixinResizable(newChild, pos, resizableProps);
 
   // Draggable support. This is always on, except for with placeholders.
-  if (isDraggable) newChild = mixinDraggable(newChild);
-
-  return newChild;
+  return (
+    <Draggable
+      cancel={props.cancel}
+      handle={props.handle}
+      isDraggable={isDraggable}
+      onDrag={onDragHandler}
+    >
+      {newChild}
+    </Draggable>
+  );
 }
 
 GridItem.propTypes = {
   // Children must be only a single element
   children: PropTypes.element,
+  style: PropTypes.object,
 
   // General grid attributes
   cols: PropTypes.number.isRequired,
@@ -445,7 +432,8 @@ GridItem.propTypes = {
   // Selector for draggable handle
   handle: PropTypes.string,
   // Selector for draggable cancel (see react-draggable)
-  cancel: PropTypes.string
+  cancel: PropTypes.string,
+  usePercentages: PropTypes.bool.isRequired
 };
 
 GridItem.defaultProps = {
