@@ -286,12 +286,16 @@ export default class ReactGridLayout extends React.Component<Props, State> {
 
     // We need to regenerate the layout.
     if (newLayoutBase) {
-      const newLayout = synchronizeLayoutWithChildren(
-        newLayoutBase,
-        nextProps.children,
-        nextProps.cols,
-        this.compactType(nextProps)
-      );
+      // allow to initialize layout before the first children will be added
+      // this is handy for async items add, when we can't use per-item layout
+      const newLayout = nextProps.children
+        ? synchronizeLayoutWithChildren(
+            newLayoutBase,
+            nextProps.children,
+            nextProps.cols,
+            this.compactType(nextProps)
+          )
+        : newLayoutBase;
       this.setState({ layout: newLayout });
       this.onLayoutMaybeChanged(newLayout, layout);
     }
