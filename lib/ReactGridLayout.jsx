@@ -5,7 +5,7 @@ import isEqual from "lodash.isequal";
 import classNames from "classnames";
 import {
   bottom,
-  childrenEqual,
+  getChildrenKeys,
   cloneLayoutItem,
   compact,
   getLayoutItem,
@@ -113,6 +113,7 @@ export default function ReactGridLayout({
   const [oldDragItem, setOldDragItem] = useState(null);
   const [oldLayout, setOldLayout] = useState(null);
   const [oldResizeItem, setOldResizeItem] = useState(null);
+  const [childrenKeys, setChildrenKeys] = useState([]);
 
   useEffect(() => {
     setMounted(true);
@@ -123,16 +124,18 @@ export default function ReactGridLayout({
 
   useEffect(() => {
     setNewLayout(layout);
-  }, [layout]);
+  }, [layout, compactType]);
 
-  // useEffect(() => {
-  //   // If children change, also regenerate the layout. Use our state
-  //   // as the base in case because it may be more up to date than
-  //   // what is in props.
-  //   if (!childrenEqual(children, nextProps.children)) {
-  //     setNewLayout(layout);
-  //   }
-  // }, [children]);
+  useEffect(() => {
+    const currentChildrenKeys = getChildrenKeys(children);
+    // If children change, also regenerate the layout. Use our state
+    // as the base in case because it may be more up to date than
+    // what is in props.
+    if (!isEqual(currentChildrenKeys, childrenKeys)) {
+      setNewLayout(layout);
+      setChildrenKeys(currentChildrenKeys);
+    }
+  });
 
   function setNewLayout(newLayoutBase) {
     const newLayout = synchronizeLayoutWithChildren(
