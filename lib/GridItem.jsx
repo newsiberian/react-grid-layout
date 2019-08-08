@@ -324,6 +324,7 @@ export default function GridItem(props) {
       cancel={cancel}
       handle={handle}
       isDraggable={isDraggable}
+      isResizable={resizable}
       onDrag={onDragHandler}
     >
       <Resizable

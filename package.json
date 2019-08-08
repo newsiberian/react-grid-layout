@@ -1,6 +1,6 @@
 {
   "name": "@granatum/react-grid-layout",
-  "version": "0.19.0",
+  "version": "0.19.1",
   "description": "A draggable and resizable grid layout with responsive breakpoints, for React.",
   "main": "index.js",
   "scripts": {

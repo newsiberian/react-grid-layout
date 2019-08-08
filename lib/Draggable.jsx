@@ -6,6 +6,7 @@ export default function Draggable({
   cancel,
   children,
   isDraggable,
+  isResizable,
   handle,
   onDrag
 }) {
@@ -18,7 +19,7 @@ export default function Draggable({
         handle={handle}
         cancel={`.react-resizable-handle${cancel.length ? `,${cancel}` : ""}`}
       >
-        {children}
+        {isResizable ? children : children.props.children}
       </DraggableCore>
     );
   }
