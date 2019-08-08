@@ -1,5 +1,13 @@
 # Changelog
 
+0.19.0 (Aug 8, 2019)
+----
+
+- Breaking changes: `data-grid` property is no longer considered as prioritized over the` layout`
+ if it doesn't contain `i` field and it will be merged with `layout` item
+- Breaking changes: `data-grid.isResizable` will override any other `isResizable` props
+- Removed `_grid`-related code  
+
 0.16.6 (Mar 8, 2018)
 ----
 

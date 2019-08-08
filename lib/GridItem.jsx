@@ -312,6 +312,13 @@ export default function GridItem(props) {
     }
   });
 
+  // `data-grid` isResizable can override any other props
+  const resizable =
+    child.props["data-grid"] &&
+    typeof child.props["data-grid"].isResizable === "boolean"
+      ? child.props["data-grid"].isResizable
+      : isResizable;
+
   return (
     <Draggable
       cancel={cancel}
@@ -327,7 +334,7 @@ export default function GridItem(props) {
         minH={minH}
         maxW={maxW}
         maxH={maxH}
-        isResizable={isResizable}
+        isResizable={resizable}
         onResize={onResizeHandler}
         position={pos}
         resizableProps={resizableProps}
