@@ -23,7 +23,8 @@ const type = obj => Object.prototype.toString.call(obj);
 type State = {
   layout: Layout,
   breakpoint: string,
-  cols: number
+  cols: number,
+  layouts?: { [key: string]: Layout }
 };
 
 type Props<Breakpoint: string = string> = {
@@ -148,19 +149,10 @@ export default class ResponsiveReactGridLayout extends React.Component<
     };
   }
 
-  componentWillReceiveProps(nextProps: Props<*>) {
-    const { cols, breakpoint, breakpoints, layouts, width } = this.props;
-    // Allow parent to set width or breakpoint directly.
-    if (
-      nextProps.width !== width ||
-      nextProps.breakpoint !== breakpoint ||
-      !isEqual(nextProps.breakpoints, breakpoints) ||
-      !isEqual(nextProps.cols, cols)
-    ) {
-      this.onWidthChange(nextProps);
-    } else if (!isEqual(nextProps.layouts, layouts)) {
+  static getDerivedStateFromProps(nextProps: Props<*>, prevState: State) {
+    if (!isEqual(nextProps.layouts, prevState.layouts)) {
       // Allow parent to set layouts directly.
-      const { breakpoint, cols } = this.state;
+      const { breakpoint, cols } = prevState;
 
       // Since we're setting an entirely new layout object, we must generate a new responsive layout
       // if one does not exist.
@@ -172,7 +164,21 @@ export default class ResponsiveReactGridLayout extends React.Component<
         cols,
         nextProps.compactType
       );
-      this.setState({ layout: newLayout });
+      return { layout: newLayout, layouts: nextProps.layouts };
+    }
+
+    return null;
+  }
+
+  componentDidUpdate(prevProps: Props<*>) {
+    // Allow parent to set width or breakpoint directly.
+    if (
+      this.props.width !== prevProps.width ||
+      this.props.breakpoint !== prevProps.breakpoint ||
+      !isEqual(this.props.breakpoints, prevProps.breakpoints) ||
+      !isEqual(this.props.cols, prevProps.cols)
+    ) {
+      this.onWidthChange(this.props);
     }
   }
 
