@@ -34,25 +34,30 @@ export default function GridItem(props) {
   function calcPosition(x, y, w, h, state) {
     const { margin, containerPadding, rowHeight } = props;
     const colWidth = calcColWidth();
+    const out = {};
 
-    const out = {
-      left: Math.round((colWidth + margin[0]) * x + containerPadding[0]),
-      top: Math.round((rowHeight + margin[1]) * y + containerPadding[1]),
-      // 0 * Infinity === NaN, which causes problems with resize constraints;
-      // Fix this if it occurs.
-      // Note we do it here rather than later because Math.round(Infinity) causes deopt
-      width: w === Infinity ? w : calcWidth(w, colWidth),
-      height: h === Infinity ? h : calcHeight(h)
-    };
-
+    // If resizing, use the exact width and height as returned from resizing callbacks.
     if (state && state.resizing) {
       out.width = Math.round(state.resizing.width);
       out.height = Math.round(state.resizing.height);
+    }
+    // Otherwise, calculate from grid units.
+    else {
+      // 0 * Infinity === NaN, which causes problems with resize constraints;
+      // Fix this if it occurs.
+      // Note we do it here rather than later because Math.round(Infinity) causes deopt
+      out.width = w === Infinity ? w : calcWidth(w, colWidth);
+      out.height = h === Infinity ? h : calcHeight(h);
     }
 
     if (state && state.dragging) {
       out.top = Math.round(state.dragging.top);
       out.left = Math.round(state.dragging.left);
+    }
+    // Otherwise, calculate from grid units.
+    else {
+      out.top = Math.round((rowHeight + margin[1]) * y + containerPadding[1]);
+      out.left = Math.round((colWidth + margin[0]) * x + containerPadding[0]);
     }
 
     return out;
