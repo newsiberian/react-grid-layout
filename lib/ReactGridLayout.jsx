@@ -119,7 +119,7 @@ export default function ReactGridLayout({
     setMounted(true);
     // Possibly call back with layout on mount. This should be done after correcting the layout width
     // to ensure we don't rerender with the wrong width.
-    handleLayoutMaybeChanged(layoutState, layout);
+    handleLayoutMaybeChanged(layout, layoutState);
   }, []);
 
   useEffect(() => {

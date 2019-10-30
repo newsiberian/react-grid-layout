@@ -176,7 +176,8 @@ export default class ResponsiveReactGridLayout extends React.Component<
       this.props.width !== prevProps.width ||
       this.props.breakpoint !== prevProps.breakpoint ||
       !isEqual(this.props.breakpoints, prevProps.breakpoints) ||
-      !isEqual(this.props.cols, prevProps.cols)
+      !isEqual(this.props.cols, prevProps.cols) ||
+      (!prevProps.children && this.props.children)
     ) {
       this.onWidthChange(this.props);
     }
@@ -213,10 +214,13 @@ export default class ResponsiveReactGridLayout extends React.Component<
     const newCols: number = getColsFromBreakpoint(newBreakpoint, cols);
 
     // Breakpoint change
+    // We are waiting till children will be loaded and only after that allow this
+    // changes. Otherwise `synchronizeLayoutWithChildren` will flush our `layout`
     if (
-      lastBreakpoint !== newBreakpoint ||
-      propsBreakpoints !== breakpoints ||
-      propCols !== cols
+      nextProps.children &&
+      (lastBreakpoint !== newBreakpoint ||
+        propsBreakpoints !== breakpoints ||
+        propCols !== cols)
     ) {
       // otherwise original `layouts` prop will be mutated
       const modifiedLayouts = { ...layouts };

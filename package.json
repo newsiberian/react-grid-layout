@@ -1,6 +1,6 @@
 {
   "name": "@granatum/react-grid-layout",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "description": "A draggable and resizable grid layout with responsive breakpoints, for React.",
   "main": "index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "classnames": "2.x",
     "lodash.isequal": "^4.0.0",
     "prop-types": "15.x",
-    "react-draggable": "^4.0.3",
+    "react-draggable": "^4.1.0",
     "react-resizable": "^1.9.0"
   },
   "devDependencies": {
