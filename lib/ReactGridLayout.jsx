@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import isEqual from "lodash.isequal";
-import classNames from "classnames";
+import clsx from "clsx";
 import {
   bottom,
   getChildrenKeys,
@@ -40,10 +40,10 @@ export type Props = {
   draggableCancel: string,
   draggableHandle: string,
   verticalCompact: boolean,
-  compactType: ?("horizontal" | "vertical"),
+  compactType?: ("horizontal" | "vertical"),
   layout: Layout,
   margin: [number, number],
-  containerPadding: [number, number] | null,
+  containerPadding?: [number, number],
   rowHeight: number,
   maxRows: number,
   isDraggable: boolean,
@@ -98,7 +98,7 @@ export default function ReactGridLayout({
   useCSSTransforms = true,
   verticalCompact = true,
   width
-}) {
+}: Props) {
   const [activeDrag, setActiveDrag] = useState(null);
   const [layoutState, setLayoutState] = useState(
     synchronizeLayoutWithChildren(
@@ -545,7 +545,7 @@ export default function ReactGridLayout({
     );
   }
 
-  const mergedClassName = classNames("react-grid-layout", className);
+  const mergedClassName = clsx("react-grid-layout", className);
   const mergedStyle = {
     height: containerHeight(),
     ...style
