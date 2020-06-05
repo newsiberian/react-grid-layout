@@ -100,7 +100,7 @@ export default function ReactGridLayout({
   width
 }: Props) {
   const [activeDrag, setActiveDrag] = useState(null);
-  const [layoutState, setLayoutState] = useState(
+  const layoutState = React.useRef(
     synchronizeLayoutWithChildren(
       layout,
       children,
@@ -119,7 +119,7 @@ export default function ReactGridLayout({
     setMounted(true);
     // Possibly call back with layout on mount. This should be done after correcting the layout width
     // to ensure we don't rerender with the wrong width.
-    handleLayoutMaybeChanged(layout, layoutState);
+    handleLayoutMaybeChanged(layout, layoutState.current);
   }, []);
 
   useEffect(() => {
@@ -145,8 +145,9 @@ export default function ReactGridLayout({
       fixCompactType()
     );
 
-    setLayoutState(newLayout);
-    handleLayoutMaybeChanged(newLayout, layoutState);
+    const old = [...layoutState.current];
+    layoutState.current = newLayout;
+    handleLayoutMaybeChanged(newLayout, old);
   }
 
   // componentWillReceiveProps(nextProps: Props) {
@@ -191,7 +192,7 @@ export default function ReactGridLayout({
     if (!autoSize) {
       return;
     }
-    const nbRow = bottom(layoutState);
+    const nbRow = bottom(layoutState.current);
     const containerPaddingY = containerPadding
       ? containerPadding[1]
       : margin[1];
@@ -218,16 +219,16 @@ export default function ReactGridLayout({
     y: number,
     { e, node }: GridDragEvent
   ) {
-    const l = getLayoutItem(layoutState, i);
+    const l = getLayoutItem(layoutState.current, i);
 
     if (!l) {
       return;
     }
 
     setOldDragItem(cloneLayoutItem(l));
-    setOldLayout(layoutState);
+    setOldLayout(layoutState.current);
 
-    return onDragStart(layoutState, l, l, null, e, node);
+    return onDragStart(layoutState.current, l, l, null, e, node);
   }
 
   /**
@@ -244,7 +245,7 @@ export default function ReactGridLayout({
     y: number,
     { e, node }: GridDragEvent
   ) {
-    const l = getLayoutItem(layoutState, i);
+    const l = getLayoutItem(layoutState.current, i);
 
     if (!l) {
       return;
@@ -261,7 +262,7 @@ export default function ReactGridLayout({
     };
 
     const modifiedLayout = moveElement(
-      layoutState,
+      [...layoutState.current],
       l,
       x,
       y,
@@ -274,7 +275,8 @@ export default function ReactGridLayout({
 
     onDrag(modifiedLayout, oldDragItem, l, placeholder, e, node);
 
-    setLayoutState(compact(modifiedLayout, fixCompactType(), cols));
+    // setLayoutState(compact(modifiedLayout, fixCompactType(), cols));
+    layoutState.current = compact(modifiedLayout, fixCompactType(), cols);
     setActiveDrag(placeholder);
   }
 
@@ -292,14 +294,14 @@ export default function ReactGridLayout({
     y: number,
     { e, node }: GridDragEvent
   ) {
-    const l = getLayoutItem(layoutState, i);
+    const l = getLayoutItem(layoutState.current, i);
 
     if (!l) {
       return;
     }
 
     const modifiedLayout = moveElement(
-      [...layoutState],
+      [...layoutState.current],
       l,
       x,
       y,
@@ -314,9 +316,10 @@ export default function ReactGridLayout({
 
     // Set state
     const newLayout = compact(modifiedLayout, fixCompactType(), cols);
+    const oldLayout = [...layoutState.current];
 
     setActiveDrag(null);
-    setLayoutState(newLayout);
+    layoutState.current = newLayout;
     setOldDragItem(null);
     setOldLayout(null);
 
@@ -327,7 +330,7 @@ export default function ReactGridLayout({
     newLayoutState: Layout,
     oldLayoutState: ?Layout
   ) {
-    const old = oldLayoutState ? oldLayoutState : layoutState;
+    const old = oldLayoutState ? oldLayoutState : layoutState.current;
     if (!isEqual(old, newLayoutState)) {
       onLayoutChange(newLayoutState);
     }
@@ -339,7 +342,7 @@ export default function ReactGridLayout({
     h: number,
     { e, node }: GridResizeEvent
   ) {
-    const l = getLayoutItem(layoutState, i);
+    const l = getLayoutItem(layoutState.current, i);
 
     if (!l) {
       return;
@@ -347,9 +350,11 @@ export default function ReactGridLayout({
 
     setOldResizeItem(cloneLayoutItem(l));
     // thanks https://github.com/STRML/react-grid-layout/pull/1219
-    setOldLayout(layoutState.map(layoutItem => cloneLayoutItem(layoutItem)));
+    setOldLayout(
+      layoutState.current.map(layoutItem => cloneLayoutItem(layoutItem))
+    );
 
-    onResizeStart(layoutState, l, l, null, e, node);
+    onResizeStart(layoutState.current, l, l, null, e, node);
   }
 
   function handleResize(
@@ -358,7 +363,7 @@ export default function ReactGridLayout({
     h: number,
     { e, node }: GridResizeEvent
   ) {
-    const l: ?LayoutItem = getLayoutItem(layoutState, i);
+    const l: ?LayoutItem = getLayoutItem(layoutState.current, i);
 
     if (!l) {
       return;
@@ -369,9 +374,11 @@ export default function ReactGridLayout({
     let hasCollisions = false;
 
     if (preventCollision) {
-      const collisions = getAllCollisions(layoutState, { ...l, w, h }).filter(
-        layoutItem => layoutItem.i !== l.i
-      );
+      const collisions = getAllCollisions(layoutState.current, {
+        ...l,
+        w,
+        h
+      }).filter(layoutItem => layoutItem.i !== l.i);
       hasCollisions = collisions.length > 0;
 
       // If we're colliding, we need adjust the placeholder.
@@ -416,10 +423,10 @@ export default function ReactGridLayout({
       i: i
     };
 
-    onResize(layoutState, oldResizeItem, l, placeholder, e, node);
+    onResize(layoutState.current, oldResizeItem, l, placeholder, e, node);
 
     // Re-compact the layout and set the drag placeholder.
-    setLayoutState(compact(layoutState, fixCompactType(), cols));
+    layoutState.current = compact(layoutState.current, fixCompactType(), cols);
     setActiveDrag(placeholder);
   }
 
@@ -429,15 +436,15 @@ export default function ReactGridLayout({
     h: number,
     { e, node }: GridResizeEvent
   ) {
-    const l = getLayoutItem(layoutState, i);
+    const l = getLayoutItem(layoutState.current, i);
 
-    onResizeStop(layoutState, oldResizeItem, l, null, e, node);
+    onResizeStop(layoutState.current, oldResizeItem, l, null, e, node);
 
     // Set state
-    const newLayout = compact(layoutState, fixCompactType(), cols);
+    const newLayout = compact(layoutState.current, fixCompactType(), cols);
 
     setActiveDrag(null);
-    setLayoutState(newLayout);
+    layoutState.current = newLayout;
     setOldResizeItem(null);
     setOldLayout(null);
 
@@ -489,7 +496,7 @@ export default function ReactGridLayout({
       return;
     }
 
-    const l = getLayoutItem(layoutState, String(child.key));
+    const l = getLayoutItem(layoutState.current, String(child.key));
     if (!l) {
       return null;
     }

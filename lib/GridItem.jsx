@@ -10,13 +10,18 @@ import { perc, setTopLeft, setTransform } from "./utils";
 /**
  * An individual item within a ReactGridLayout.
  */
-export default function GridItem(props) {
+export default function GridItem({
+  containerPadding,
+  margin,
+  rowHeight,
+  ...props
+}) {
   const [resizing, setResizing] = useState(null);
   const [dragging, setDragging] = useState(null);
 
   // Helper for generating column width
   function calcColWidth() {
-    const { margin, containerPadding, containerWidth, cols } = props;
+    const { containerWidth, cols } = props;
     return (
       (containerWidth - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols
     );
@@ -32,7 +37,6 @@ export default function GridItem(props) {
    * @return {Object}                Object containing coords.
    */
   function calcPosition(x, y, w, h, state) {
-    const { margin, containerPadding, rowHeight } = props;
     const colWidth = calcColWidth();
     const out = {};
 
@@ -70,7 +74,7 @@ export default function GridItem(props) {
    * @return {Object} x and y in grid units.
    */
   function calcXY(top, left) {
-    const { margin, cols, containerPadding, rowHeight, w, h, maxRows } = props;
+    const { cols, w, h, maxRows } = props;
     const colWidth = calcColWidth();
 
     // left = colWidth * x + margin * (x + 1)
@@ -97,7 +101,7 @@ export default function GridItem(props) {
    * @return {Object} w, h as grid units.
    */
   function calcWH({ height, width }) {
-    const { margin, maxRows, cols, rowHeight, x, y } = props;
+    const { maxRows, cols, x, y } = props;
     const colWidth = calcColWidth();
 
     // width = colWidth * w - (margin * (w - 1))
@@ -119,7 +123,7 @@ export default function GridItem(props) {
    * @return {Number} Item width in pixels
    */
   function calcWidth(w, colWidth) {
-    return Math.round(colWidth * w + Math.max(0, w - 1) * props.margin[0]);
+    return Math.round(colWidth * w + Math.max(0, w - 1) * margin[0]);
   }
 
   /**
@@ -128,7 +132,6 @@ export default function GridItem(props) {
    * @return {Number} Item height in pixels
    */
   function calcHeight(h) {
-    const { rowHeight, margin } = props;
     return Math.round(rowHeight * h + Math.max(0, h - 1) * margin[1]);
   }
 
