@@ -40,7 +40,7 @@ export type Props = {
   draggableCancel: string,
   draggableHandle: string,
   verticalCompact: boolean,
-  compactType?: ("horizontal" | "vertical"),
+  compactType?: "horizontal" | "vertical",
   layout: Layout,
   margin: [number, number],
   containerPadding?: [number, number],
@@ -346,7 +346,8 @@ export default function ReactGridLayout({
     }
 
     setOldResizeItem(cloneLayoutItem(l));
-    setOldLayout(layoutState);
+    // thanks https://github.com/STRML/react-grid-layout/pull/1219
+    setOldLayout(layoutState.map(layoutItem => cloneLayoutItem(layoutItem)));
 
     onResizeStart(layoutState, l, l, null, e, node);
   }

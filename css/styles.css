@@ -30,6 +30,8 @@
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
+  /* https://github.com/STRML/react-grid-layout/pull/1178 */
+  pointer-events: none;
 }
 
 .react-grid-item > .react-resizable-handle {
