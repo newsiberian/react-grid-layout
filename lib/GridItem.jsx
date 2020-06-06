@@ -59,6 +59,7 @@ export default function GridItem({
       out.left = Math.round(state.dragging.left);
     }
     // Otherwise, calculate from grid units.
+    // TODO: unnecessary vvv
     else {
       out.top = Math.round((rowHeight + margin[1]) * y + containerPadding[1]);
       out.left = Math.round((colWidth + margin[0]) * x + containerPadding[0]);
@@ -177,8 +178,7 @@ export default function GridItem({
    * @return {*}
    */
   function onDragHandler(e, { node, deltaX, deltaY }, handlerName) {
-    const handler = props[handlerName];
-    if (!handler) return;
+    if (!props[handlerName]) return;
 
     const newPosition = { top: 0, left: 0 };
 
@@ -242,7 +242,7 @@ export default function GridItem({
 
     const { x, y } = calcXY(newPosition.top, newPosition.left);
 
-    return handler.call(this, props.i, x, y, { e, node, newPosition });
+    return props[handlerName].call(this, props.i, x, y, { e, node, newPosition });
   }
 
   /**
@@ -255,8 +255,7 @@ export default function GridItem({
    * @param {String} handlerName - Handler name to wrap.
    */
   function onResizeHandler(e, { node, size }, handlerName) {
-    const handler = props[handlerName];
-    if (!handler) return;
+    if (!props[handlerName]) return;
     const { cols, x, i, maxW, minW, maxH, minH } = props;
 
     // Get new XY
@@ -273,7 +272,7 @@ export default function GridItem({
 
     setResizing(handlerName === "onResizeStop" ? null : size);
 
-    handler.call(this, i, w, h, { e, node, size });
+    props[handlerName](i, w, h, { e, node, size });
   }
 
   const {

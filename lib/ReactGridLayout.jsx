@@ -117,9 +117,10 @@ export default function ReactGridLayout({
 
   useEffect(() => {
     setMounted(true);
-    // Possibly call back with layout on mount. This should be done after correcting the layout width
-    // to ensure we don't rerender with the wrong width.
-    handleLayoutMaybeChanged(layout, layoutState.current);
+    // Possibly call back with layout on mount. This should be done after
+    // correcting the layout width to ensure we don't rerender with the wrong
+    // width.
+    handleLayoutMaybeChanged(layout, [...layoutState.current]);
   }, []);
 
   useEffect(() => {
@@ -314,16 +315,15 @@ export default function ReactGridLayout({
 
     onDragStop(modifiedLayout, oldDragItem, l, null, e, node);
 
-    // Set state
     const newLayout = compact(modifiedLayout, fixCompactType(), cols);
-    const oldLayout = [...layoutState.current];
+    const old = [...layoutState.current];
 
     setActiveDrag(null);
     layoutState.current = newLayout;
     setOldDragItem(null);
     setOldLayout(null);
 
-    handleLayoutMaybeChanged(newLayout, oldLayout);
+    handleLayoutMaybeChanged(newLayout, old);
   }
 
   function handleLayoutMaybeChanged(
@@ -426,7 +426,7 @@ export default function ReactGridLayout({
     onResize(layoutState.current, oldResizeItem, l, placeholder, e, node);
 
     // Re-compact the layout and set the drag placeholder.
-    layoutState.current = compact(layoutState.current, fixCompactType(), cols);
+    layoutState.current = compact([...layoutState.current], fixCompactType(), cols);
     setActiveDrag(placeholder);
   }
 
